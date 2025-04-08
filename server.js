@@ -153,7 +153,8 @@ console.log('Swagger Spec:', JSON.stringify(swaggerSpec, null, 2)); // ADD IT RI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Define your API routes here
-app.use('/api/tasks', ensureAuthenticated, taskRoutes);
+
+// Authentication routes (no authentication required)
 app.use('/auth', authRoutes);
 
 // Protected task routes - only accessible if authenticated
