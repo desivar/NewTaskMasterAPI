@@ -1,4 +1,3 @@
-// server.js
 const express = require('express');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
@@ -86,71 +85,81 @@ passport.deserializeUser((id, done) => {
 connectDB();
 
 const swaggerOptions = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'Task Master API',
-      version: '1.0.0',
-      description: 'API documentation for Task Master',
-    },
-    components: {
-      securitySchemes: {
-        googleAuth: {
-          type: 'oauth2',
-          flows: {
-            authorizationCode: {
-              authorizationUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
-              tokenUrl: 'https://oauth2.googleapis.com/token',
-              scopes: {
-                profile: 'View your basic profile info',
-                email: 'View your email address',
-              },
+    definition: {
+        openapi: '3.0.0',
+        info: {
+            title: 'Task Master API',
+            version: '1.0.0',
+            description: 'API documentation for Task Master',
+        },
+        components: {
+            securitySchemes: {
+                googleAuth: {
+                    type: 'oauth2',
+                    flows: {
+                        authorizationCode: {
+                            authorizationUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
+                            tokenUrl: 'https://oauth2.googleapis.com/token',
+                            scopes: {
+                                profile: 'View your basic profile info',
+                                email: 'View your email address',
+                            },
+                        },
+                    },
+                },
             },
-          },
         },
-      },
+        security: [
+            {
+                googleAuth: [],
+            },
+        ],
+        schemas: {
+            Task: {
+                type: 'object',
+                properties: {
+                    _id: { type: 'string', description: 'The task ID' },
+                    title: { type: 'string', description: 'The title of the task' },
+                    description: { type: 'string', description: 'The detailed description of the task' },
+                    status: { type: 'string', enum: ['To Do', 'In Progress', 'Blocked', 'Done'], description: 'The current status of the task' },
+                    priority: { type: 'string', enum: ['High', 'Medium', 'Low'], description: 'The priority level of the task' },
+                    dueDate: { type: 'string', format: 'date-time', description: 'The date and time when the task is due' },
+                    createdBy: { type: 'string', description: 'The ID of the user who created the task' },
+                    createdAt: { type: 'string', format: 'date-time', description: 'The timestamp when the task was created' },
+                    updatedAt: { type: 'string', format: 'date-time', description: 'The timestamp when the task was last updated' },
+                    category: { type: 'string', description: 'The category of the task' },
+                    isCompleted: { type: 'boolean', description: 'Indicates if the task is completed' },
+                },
+            },
+            TaskInput: {
+                type: 'object',
+                properties: {
+                    title: { type: 'string', description: 'The title of the task to create/update' },
+                    description: { type: 'string', description: 'The detailed description of the task to create/update' },
+                    status: { type: 'string', enum: ['To Do', 'In Progress', 'Blocked', 'Done'], description: 'The initial/updated status of the task' },
+                    priority: { type: 'string', enum: ['High', 'Medium', 'Low'], description: 'The initial/updated priority level of the task' },
+                    dueDate: { type: 'string', format: 'date-time', description: 'The due date and time for the task' },
+                    category: { type: 'string', description: 'The category for the task' },
+                    isCompleted: { type: 'boolean', description: 'The initial/updated completion status of the task' },
+                },
+                required: ['title'],
+            },
+        },
     },
-    security: [
-      {
-        googleAuth: [],
-      },
-    ],
-    schemas: {
-      Task: {
-        type: 'object',
-        properties: {
-          _id: { type: 'string', description: 'The task ID' },
-          title: { type: 'string', description: 'The title of the task' },
-          description: { type: 'string', description: 'The detailed description of the task' },
-          status: { type: 'string', enum: ['To Do', 'In Progress', 'Blocked', 'Done'], description: 'The current status of the task' },
-          priority: { type: 'string', enum: ['High', 'Medium', 'Low'], description: 'The priority level of the task' },
-          dueDate: { type: 'string', format: 'date-time', description: 'The date and time when the task is due' },
-          createdBy: { type: 'string', description: 'The ID of the user who created the task' },
-          createdAt: { type: 'string', format: 'date-time', description: 'The timestamp when the task was created' },
-          updatedAt: { type: 'string', format: 'date-time', description: 'The timestamp when the task was last updated' },
-          category: { type: 'string', description: 'The category of the task' },
-          isCompleted: { type: 'boolean', description: 'Indicates if the task is completed' },
-        },
-      },
-      TaskInput: {
-        type: 'object',
-        properties: {
-          title: { type: 'string', description: 'The title of the task to create/update' },
-          description: { type: 'string', description: 'The detailed description of the task to create/update' },
-          status: { type: 'string', enum: ['To Do', 'In Progress', 'Blocked', 'Done'], description: 'The initial/updated status of the task' },
-          priority: { type: 'string', enum: ['High', 'Medium', 'Low'], description: 'The initial/updated priority level of the task' },
-          dueDate: { type: 'string', format: 'date-time', description: 'The due date and time for the task' },
-          category: { type: 'string', description: 'The category for the task' },
-          isCompleted: { type: 'boolean', description: 'The initial/updated completion status of the task' },
-        },
-        required: ['title'],
-      },
-    },
-  },
-  apis: [path.join(__dirname, '/routes/*.js')],
+    apis: [path.join(__dirname, '/routes/*.js')],
 };
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 console.log('Swagger Spec:', JSON.stringify(swaggerSpec, null, 2)); // ADD IT RIGHT HERE
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// ... rest of your code ...
+// Define your API routes here
+app.use('/api/tasks', ensureAuthenticated, taskRoutes);
+app.use('/auth', authRoutes);
+
+// Start the server
+const PORT = process.env.PORT || 5500;
+const HOST = '0.0.0.0'; // Explicitly bind to all interfaces
+
+app.listen(process.env.PORT, HOST, () => {
+    console.log(`🚀 Server running on http://${HOST}:${process.env.PORT}`);
+});
