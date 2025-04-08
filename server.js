@@ -156,10 +156,12 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/tasks', ensureAuthenticated, taskRoutes);
 app.use('/auth', authRoutes);
 
-// Start the server
-const PORT = process.env.PORT || 5500;
-const HOST = '0.0.0.0'; // Explicitly bind to all interfaces
+// Protected task routes - only accessible if authenticated
+app.use('/api/tasks', ensureAuthenticated, taskRoutes);
 
-app.listen(process.env.PORT, HOST, () => {
-    console.log(`🚀 Server running on http://${HOST}:${process.env.PORT}`);
+app.get('/', (req, res) => {
+    res.send('API is running...');
 });
+
+const PORT = process.env.PORT || 5500;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
